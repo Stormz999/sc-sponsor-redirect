@@ -1,3 +1,5 @@
+import mapping from "./store.json" assert { type: "json" };
+
 export default async (req) => {
   // URL pattern: /.netlify/functions/go/:source
   const url = new URL(req.url);
@@ -7,8 +9,11 @@ export default async (req) => {
     return new Response("Missing source", { status: 400 });
   }
 
-  // TEMP redirect target (we'll replace this with your real lookup next step)
-  const target = `https://coachingsociety.typeform.com/application?source=${encodeURIComponent(source)}`;
+  const target = mapping[source];
+
+  if (!target) {
+    return new Response("Unknown source", { status: 404 });
+  }
 
   return new Response(null, {
     status: 302,
