@@ -15,11 +15,14 @@ exports.handler = async (event) => {
     `&utm_campaign=coaching_society` +
     `&utm_content=${encodeURIComponent(source)}`;
 
-  // Fire-and-forget click log (does NOT block redirect)
+  // Click log (WAIT briefly so it actually sends)
   const clickLogUrl = "https://n8n-service-ucto.onrender.com/webhook/click-log";
 
   try {
-    fetch(clickLogUrl, {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 300); // 300ms max
+
+    await fetch(clickLogUrl, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
@@ -29,12 +32,15 @@ exports.handler = async (event) => {
         referer: event.headers["referer"] || event.headers["referrer"] || "",
         ip: (event.headers["x-forwarded-for"] || "").split(",")[0].trim(),
       }),
+      signal: controller.signal,
     }).catch(() => {});
+
+    clearTimeout(timeout);
   } catch (e) {
     // ignore logging failures
   }
 
-  // Redirect immediately
+  // Redirect
   return {
     statusCode: 302,
     headers: { Location: target },
