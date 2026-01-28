@@ -16,7 +16,7 @@ exports.handler = async (event) => {
     `&utm_content=${encodeURIComponent(source)}`;
 
   // Fire-and-forget click log (does NOT block redirect)
-  const clickLogUrl = "https://n8n-service-ucto.onrender.com/webhook-test/click-log";
+  const clickLogUrl = "https://n8n-service-ucto.onrender.com/webhook/click-log";
 
   try {
     fetch(clickLogUrl, {
