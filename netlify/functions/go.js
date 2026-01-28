@@ -5,9 +5,8 @@ exports.handler = async (event) => {
     return { statusCode: 400, body: "Missing source" };
   }
 
+  // Build Typeform destination (fast, no lookups)
   const base = "https://coachingsociety.typeform.com/application";
-
-  // Keep attribution in Typeform via UTMs (and source stays in the Typeform 'source' param)
   const target =
     `${base}` +
     `?source=${encodeURIComponent(source)}` +
@@ -16,6 +15,26 @@ exports.handler = async (event) => {
     `&utm_campaign=coaching_society` +
     `&utm_content=${encodeURIComponent(source)}`;
 
+  // Fire-and-forget click log (does NOT block redirect)
+  const clickLogUrl = "https://n8n-service-ucto.onrender.com/webhook-test/click-log";
+
+  try {
+    fetch(clickLogUrl, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        ts: new Date().toISOString(),
+        source,
+        ua: event.headers["user-agent"] || "",
+        referer: event.headers["referer"] || event.headers["referrer"] || "",
+        ip: (event.headers["x-forwarded-for"] || "").split(",")[0].trim(),
+      }),
+    }).catch(() => {});
+  } catch (e) {
+    // ignore logging failures
+  }
+
+  // Redirect immediately
   return {
     statusCode: 302,
     headers: { Location: target },
