@@ -1,22 +1,28 @@
-import mapping from "./store.json" assert { type: "json" };
+const mapping = require("./store.json");
 
-export default async (req) => {
-  // URL pattern: /.netlify/functions/go/:source
-  const url = new URL(req.url);
-  const source = url.pathname.split("/").pop(); // last segment
+exports.handler = async (event) => {
+  const source = event.path.split("/").pop();
 
   if (!source) {
-    return new Response("Missing source", { status: 400 });
+    return {
+      statusCode: 400,
+      body: "Missing source"
+    };
   }
 
   const target = mapping[source];
 
   if (!target) {
-    return new Response("Unknown source", { status: 404 });
+    return {
+      statusCode: 404,
+      body: "Unknown source"
+    };
   }
 
-  return new Response(null, {
-    status: 302,
-    headers: { Location: target },
-  });
+  return {
+    statusCode: 302,
+    headers: {
+      Location: target
+    }
+  };
 };
