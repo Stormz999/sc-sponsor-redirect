@@ -2,3 +2,4 @@
   from = "/*"
   to = "/.netlify/functions/go/:splat"
   status = 200
+  force = true
